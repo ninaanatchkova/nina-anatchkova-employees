@@ -2,6 +2,8 @@
 //eslint-disable-next-line no-restricted-globals
 const ctx: Worker = self as any;
 
+const milisecondsPerDay = 1000 * 60 * 60 * 24;
+
 ctx.addEventListener("message", (event)=> {
   const data = event.data
 
@@ -10,11 +12,11 @@ ctx.addEventListener("message", (event)=> {
   postMessage('done');
 })
 
-type ProjectRecord = {
+type EmployeeRecord = {
   employeeId: number;
   projectId: number;
-  startDate: Date;
-  endDate: Date;
+  startDate: number;
+  endDate: number;
 }
 
 async function extractProjectDataFromFile(file: File) {
@@ -25,7 +27,7 @@ async function extractProjectDataFromFile(file: File) {
 
   let unprocessed = '';
 
-  const projects: ProjectRecord[][] = [];
+  const projects: EmployeeRecord[][] = [];
 
   while (true) {
     const { done, value } = await reader.read();
@@ -92,13 +94,42 @@ function isRowValid(tokens: string[]) {
   return true;
 }
 
-function createProjectRecordFromTokens(employeeId: string, projectId: string, startDate: string, endDate:string): ProjectRecord {
+function createProjectRecordFromTokens(employeeId: string, projectId: string, startDate: string, endDate:string): EmployeeRecord {
   return {
     employeeId: parseInt(employeeId),
     projectId: parseInt(projectId),
-    startDate: new Date(Date.parse(startDate)),
-    endDate: endDate === "NULL" ? new Date() : new Date(Date.parse(endDate))
+    startDate: Date.parse(startDate),
+    endDate: endDate === "NULL" ? Date.now() : Date.parse(endDate)
   }
+}
+
+function findCoworkingPairs(project: EmployeeRecord[]) {
+  const coworkingPairs = {};
+
+  for (let i = 0; i < project.length; i++) {
+    const currentEmployee = project[i];
+    const restOfEmployees = project.slice(i + 1);
+
+    // restOfEmployees.reduce(reducer, {})
+
+    // function reducer(coworkingPairs, employeeRecord) {
+
+    //   const coworkingPairKey = currentEmployee.employeeId < employeeRecord.employeeId ? `${currentEmployee}-${employeeRecord.employeeId}` : `${employeeRecord.employeeId}-${currentEmployee}`;
+    //   console.log('pair:')
+    //   console.log(currentEmployee.employeeID, employeeRecord.employeeID);
+    //   console.log(currentEmployee.startDate.toLocaleString(), currentEmployee.endDate.toLocaleString())
+    // }
+  }
+}
+
+function workingPeriodOverlap(employeeA: EmployeeRecord, employeeB: EmployeeRecord) {
+  const [firstEmployee, secondEmployee] = employeeA.startDate <= employeeB.startDate ? [employeeA, employeeB] : [employeeB, employeeA];
+  
+  if (firstEmployee.endDate < secondEmployee.startDate) {
+    return 0;
+  }
+
+  return Math.ceil((firstEmployee.endDate - secondEmployee.startDate) / milisecondsPerDay);
 }
 
 export default null as any;
