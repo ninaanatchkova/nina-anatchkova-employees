@@ -19,6 +19,22 @@ type EmployeeRecord = {
   endDate: number;
 }
 
+type CoworkingPairEntry = {
+  employeeAId: number,
+  employeeBId: number,
+  projects: [
+    {
+      projectId: number,
+      daysWorkedTogether: number,
+    }
+  ],
+  totalDaysWorkedTogether: number;
+};
+
+type CoworkingPairs = {
+  [key: string]: CoworkingPairEntry;
+};
+
 async function extractProjectDataFromFile(file: File) {
 
   const readableStream = file.stream();
@@ -104,22 +120,38 @@ function createProjectRecordFromTokens(employeeId: string, projectId: string, st
 }
 
 function findCoworkingPairs(project: EmployeeRecord[]) {
-  const coworkingPairs = {};
+  const coworkingPairs: CoworkingPairs = {};
 
   for (let i = 0; i < project.length; i++) {
     const currentEmployee = project[i];
     const restOfEmployees = project.slice(i + 1);
 
-    // restOfEmployees.reduce(reducer, {})
-
-    // function reducer(coworkingPairs, employeeRecord) {
-
-    //   const coworkingPairKey = currentEmployee.employeeId < employeeRecord.employeeId ? `${currentEmployee}-${employeeRecord.employeeId}` : `${employeeRecord.employeeId}-${currentEmployee}`;
-    //   console.log('pair:')
-    //   console.log(currentEmployee.employeeID, employeeRecord.employeeID);
-    //   console.log(currentEmployee.startDate.toLocaleString(), currentEmployee.endDate.toLocaleString())
-    // }
+    restOfEmployees.reduce(getReducer(currentEmployee), {})
   }
+}
+
+function getReducer(currentEmployee: EmployeeRecord) {
+  function reducer(coworkingPairs: CoworkingPairs, employeeRecord: EmployeeRecord) {
+    const overlap = workingPeriodOverlap(currentEmployee, employeeRecord);
+    if (overlap > 0) {
+      const coworkingPairKey = currentEmployee.employeeId < employeeRecord.employeeId ? `${currentEmployee}-${employeeRecord.employeeId}` : `${employeeRecord.employeeId}-${currentEmployee}`;
+      
+      if (!coworkingPairs[coworkingPairKey]) {
+        coworkingPairs[coworkingPairKey] = {
+          employeeAId: currentEmployee.employeeId < employeeRecord.employeeId ? currentEmployee.employeeId : employeeRecord.employeeId,
+          employeeBId: currentEmployee.employeeId < employeeRecord.employeeId ? employeeRecord.employeeId : currentEmployee.employeeId,
+          projects: [{projectId: currentEmployee.projectId, daysWorkedTogether: overlap}],
+          totalDaysWorkedTogether: overlap,
+        }
+      }
+
+      coworkingPairs[coworkingPairKey].projects.push({projectId: currentEmployee.projectId, daysWorkedTogether: overlap});
+      coworkingPairs[coworkingPairKey].totalDaysWorkedTogether += overlap;
+    }
+
+    return coworkingPairs;
+  }
+  return reducer;
 }
 
 function workingPeriodOverlap(employeeA: EmployeeRecord, employeeB: EmployeeRecord) {
