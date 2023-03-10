@@ -1,24 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
 function App() {
+  const [result, setResult] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const changeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+
+    if (event.target.files) {
+      const worker = new Worker(new URL("./processCSV.worker.ts", import.meta.url));
+
+      worker.postMessage(event.target.files[0])
+    }
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+      <header>
+        <h1>Employee collaboration data</h1>
       </header>
+      <main>
+        <p>This application identifies the pair of employees who have worked together on common projects for the longest period of time.</p>
+        <p>Please upload a CSV file with employee records to continue:</p>
+        <input type="file"
+           id="records" name="records"
+           accept="csv"
+           onChange={changeHandler}
+        />
+      </main>
     </div>
   );
 }
