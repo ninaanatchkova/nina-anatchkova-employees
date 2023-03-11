@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import logo from './logo.svg';
 import './App.css';
+import { CoworkingPairEntry } from './types';
 
 function App() {
-  const [result, setResult] = useState("");
+  const [result, setResult] = useState<CoworkingPairEntry | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const changeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -12,6 +12,11 @@ function App() {
       const worker = new Worker(new URL("./processCSV.worker.ts", import.meta.url));
 
       worker.postMessage(event.target.files[0])
+
+      worker.onmessage = function(e) {
+        setIsLoading(false);
+        setResult(e.data);
+      }
     }
   }
 
@@ -28,6 +33,25 @@ function App() {
            accept="csv"
            onChange={changeHandler}
         />
+        {result ? (<section className="result">
+          <p>Employees with ID numbers {result.employeeAId} and {result.employeeBId} have worked together the longest for a total of {result.totalDaysWorkedTogether} days.</p>
+          <p>List of employees {result.employeeAId} and {result.employeeBId} common projects:</p>
+          <div className="result__data-grid">
+            <div className="result__data-grid__header">Employee ID #1</div>
+            <div className="result__data-grid__header">Employee ID #1</div>
+            <div className="result__data-grid__header">Project ID</div>
+            <div className="result__data-grid__header">Days worked together</div>
+            {result.projects.map((project) => (
+              <>
+                <div>{result.employeeAId}</div>
+                <div>{result.employeeBId}</div>
+                <div>{project.projectId}</div>
+                <div>{project.daysWorkedTogether}</div>
+              </>))}
+            <div>Total:</div>
+            <div>{result.totalDaysWorkedTogether}</div>
+          </div>
+        </section>) : null}
       </main>
     </div>
   );

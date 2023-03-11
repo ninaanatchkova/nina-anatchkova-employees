@@ -1,3 +1,4 @@
+import { CoworkingPairs, EmployeeRecord } from "./types";
 
 //eslint-disable-next-line no-restricted-globals
 const ctx: Worker = self as any;
@@ -9,31 +10,25 @@ ctx.addEventListener("message", (event)=> {
 
   extractProjectDataFromFile(data);
 
-  postMessage('done');
+  postMessage(
+    {
+      employeeAId: 10,
+      employeeBId: 12,
+      projects: [
+        {
+          projectId: 45,
+          daysWorkedTogether: 33,
+        },
+        {
+          projectId: 21,
+          daysWorkedTogether: 60,
+        }
+      ],
+      totalDaysWorkedTogether: 93,
+    }
+  );
 })
 
-type EmployeeRecord = {
-  employeeId: number;
-  projectId: number;
-  startDate: number;
-  endDate: number;
-}
-
-type CoworkingPairEntry = {
-  employeeAId: number,
-  employeeBId: number,
-  projects: [
-    {
-      projectId: number,
-      daysWorkedTogether: number,
-    }
-  ],
-  totalDaysWorkedTogether: number;
-};
-
-type CoworkingPairs = {
-  [key: string]: CoworkingPairEntry;
-};
 
 async function extractProjectDataFromFile(file: File) {
 
@@ -51,6 +46,7 @@ async function extractProjectDataFromFile(file: File) {
     if (done) {
       console.log('entire file processed');
       console.log(projects);
+      findCoworkingPairs(projects[0]);
       break;
     }
 
@@ -126,7 +122,8 @@ function findCoworkingPairs(project: EmployeeRecord[]) {
     const currentEmployee = project[i];
     const restOfEmployees = project.slice(i + 1);
 
-    restOfEmployees.reduce(getReducer(currentEmployee), {})
+    const coworkingPairsPerEmployee = restOfEmployees.reduce(getReducer(currentEmployee), {});
+    console.log(coworkingPairsPerEmployee);
   }
 }
 
