@@ -1,4 +1,5 @@
 import { CoworkingPairs, EmployeeRecord } from "./types";
+const parser = require('any-date-parser'); 
 
 const millisecondsPerDay = 1000 * 60 * 60 * 24;
 
@@ -11,11 +12,11 @@ export function isRowValid(tokens: string[]) {
     return false;
   }
 
-  if (Number.isNaN(Date.parse(tokens[2]))) {
+  if (parser.fromString(tokens[2]).invalid) {
     return false; 
   }
 
-  if (Number.isNaN(Date.parse(tokens[3])) && tokens[3] !== "NULL") {
+  if (parser.fromString(tokens[3]).invalid && tokens[3] !== "NULL") {
     return false;
   }
 
@@ -26,8 +27,8 @@ export function createProjectRecordFromTokens(employeeId: string, projectId: str
   return {
     employeeId: parseInt(employeeId),
     projectId: parseInt(projectId),
-    startDate: Date.parse(startDate),
-    endDate: endDate === "NULL" ? Date.now() : Date.parse(endDate)
+    startDate: parser.fromString(startDate).getTime(),
+    endDate: endDate === "NULL" ? Date.now() : parser.fromString(endDate).getTime()
   }
 };
 

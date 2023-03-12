@@ -29,8 +29,6 @@ async function extractProjectDataFromFile(file: File) {
     const { done, value } = await reader.read();
     
     if (done) {
-      console.log('entire file processed');
-
       if (projects.length === 0) {
         throw new Error("Invalid data!");
       }
