@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
+import LoadingSpinner from './LoadingSpinner';
 import ResultTable from './ResultTable';
 import { CoworkingPairEntry } from './types';
 
@@ -48,9 +49,7 @@ function App() {
            onChange={changeHandler}
            disabled={isLoading}
         />
-        {isLoading ? <div>
-          <p>Loading...</p>
-          </div> : null}
+        {isLoading ? <LoadingSpinner /> : null}
         {hasError ? <p>Invalid data. Try uploading a different file.</p> : null}
         {result ? (<section className="result">
           <p>Employees with ID numbers <span className="text-strong">{result.employeeAId}</span> and <span className="text-strong">{result.employeeBId}</span> have worked together the longest for a total of <span className="text-strong">{result.totalDaysWorkedTogether}</span> days.</p>
