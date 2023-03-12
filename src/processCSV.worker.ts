@@ -5,6 +5,55 @@ const ctx: Worker = self as any;
 
 const milisecondsPerDay = 1000 * 60 * 60 * 24;
 
+const fakeProj: EmployeeRecord[][] = [
+  [
+    {
+      employeeId: 30,
+      projectId: 0,
+      startDate: Date.parse('2020-09-12'),
+      endDate: Date.parse('2020-11-05'),
+    },
+    {
+      employeeId: 12,
+      projectId: 0,
+      startDate: Date.parse('2020-10-07'),
+      endDate: Date.parse('2020-12-12'),
+    }, 
+    {
+      employeeId: 6,
+      projectId: 0,
+      startDate: Date.parse('2020-04-07'),
+      endDate: Date.parse('2020-05-12'),
+    },
+    {
+      employeeId: 13,
+      projectId: 0,
+      startDate: Date.parse('2020-04-07'),
+      endDate: Date.parse('2020-11-12'),
+    }
+  ],
+  [
+    {
+      employeeId: 15,
+      projectId: 1,
+      startDate: Date.parse('2019-09-12'),
+      endDate: Date.parse('2020-11-05'),
+    },
+    {
+      employeeId: 6,
+      projectId: 1,
+      startDate: Date.parse('2020-04-07'),
+      endDate: Date.parse('2021-05-12'),
+    },
+    {
+      employeeId: 13,
+      projectId: 1,
+      startDate: Date.parse('2020-04-07'),
+      endDate: Date.parse('2021-11-12'),
+    }
+  ]
+];
+
 ctx.addEventListener("message", (event)=> {
   const data = event.data
 
@@ -46,7 +95,7 @@ async function extractProjectDataFromFile(file: File) {
     if (done) {
       console.log('entire file processed');
       console.log(projects);
-      findCoworkingPairs(projects[0]);
+      console.log(findCoworkingPairs(fakeProj));
       break;
     }
 
@@ -115,40 +164,49 @@ function createProjectRecordFromTokens(employeeId: string, projectId: string, st
   }
 }
 
-function findCoworkingPairs(project: EmployeeRecord[]) {
-  const coworkingPairs: CoworkingPairs = {};
-
-  for (let i = 0; i < project.length; i++) {
-    const currentEmployee = project[i];
-    const restOfEmployees = project.slice(i + 1);
-
-    const coworkingPairsPerEmployee = restOfEmployees.reduce(getReducer(currentEmployee), {});
-    console.log(coworkingPairsPerEmployee);
-  }
+function findCoworkingPairs(projects: any) {
+  return projects.reduce((acc: any, project: any) => {
+    if (!project) {
+      return acc;
+    }
+    return {...acc, ...findCoworkingPairsPerProject(project)}
+  }, {})
 }
 
-function getReducer(currentEmployee: EmployeeRecord) {
-  function reducer(coworkingPairs: CoworkingPairs, employeeRecord: EmployeeRecord) {
-    const overlap = workingPeriodOverlap(currentEmployee, employeeRecord);
-    if (overlap > 0) {
-      const coworkingPairKey = currentEmployee.employeeId < employeeRecord.employeeId ? `${currentEmployee}-${employeeRecord.employeeId}` : `${employeeRecord.employeeId}-${currentEmployee}`;
-      
-      if (!coworkingPairs[coworkingPairKey]) {
-        coworkingPairs[coworkingPairKey] = {
-          employeeAId: currentEmployee.employeeId < employeeRecord.employeeId ? currentEmployee.employeeId : employeeRecord.employeeId,
-          employeeBId: currentEmployee.employeeId < employeeRecord.employeeId ? employeeRecord.employeeId : currentEmployee.employeeId,
-          projects: [{projectId: currentEmployee.projectId, daysWorkedTogether: overlap}],
-          totalDaysWorkedTogether: overlap,
-        }
-      }
+function findCoworkingPairsPerProject(project: EmployeeRecord[]) {
+  const coworkingPairs = project.reduce((acc, employeeRecord, employeeRecordIndex) => {
+    const followingEmployeeRecords = project.slice(employeeRecordIndex + 1);
 
-      coworkingPairs[coworkingPairKey].projects.push({projectId: currentEmployee.projectId, daysWorkedTogether: overlap});
-      coworkingPairs[coworkingPairKey].totalDaysWorkedTogether += overlap;
+    const coworkingPairsWithCurrent = followingEmployeeRecords.reduce(getReducer(employeeRecord), {})
+    return {...acc, ...coworkingPairsWithCurrent};
+  }, {})
+
+  return coworkingPairs;
+}
+
+function getReducer(currentRecord: EmployeeRecord) {
+  return function reducer(acc: CoworkingPairs, record: EmployeeRecord) {
+    const overlap = workingPeriodOverlap(currentRecord, record);
+
+    if (overlap <= 0) {
+      return acc
     }
 
-    return coworkingPairs;
+    const coworkingPairKey = generateCoworkingPairKey(currentRecord, record);
+
+    if (acc[coworkingPairKey]) {
+      acc[coworkingPairKey].projects.push({projectId: currentRecord.projectId, daysWorkedTogether: overlap});
+      acc[coworkingPairKey].totalDaysWorkedTogether += overlap;
+    } else {
+      acc[coworkingPairKey] = {
+        ... returnIdsInAscendingOrder(currentRecord, record),
+        projects: [{projectId: currentRecord.projectId, daysWorkedTogether: overlap}],
+        totalDaysWorkedTogether: overlap,
+      }
+    }
+
+    return acc;
   }
-  return reducer;
 }
 
 function workingPeriodOverlap(employeeA: EmployeeRecord, employeeB: EmployeeRecord) {
@@ -159,6 +217,14 @@ function workingPeriodOverlap(employeeA: EmployeeRecord, employeeB: EmployeeReco
   }
 
   return Math.ceil((firstEmployee.endDate - secondEmployee.startDate) / milisecondsPerDay);
+}
+
+function generateCoworkingPairKey(employeeA: EmployeeRecord, employeeB: EmployeeRecord) {
+  return employeeA.employeeId < employeeB.employeeId ? `${employeeA.employeeId}-${employeeB.employeeId}` : `${employeeB.employeeId}-${employeeA.employeeId}`;
+}
+
+function returnIdsInAscendingOrder(recordA: EmployeeRecord, recordB: EmployeeRecord) {
+  return recordA.employeeId < recordB.employeeId ? {employeeAId: recordA.employeeId, employeeBId: recordB.employeeId} : {employeeAId: recordB.employeeId, employeeBId: recordA.employeeId}
 }
 
 export default null as any;

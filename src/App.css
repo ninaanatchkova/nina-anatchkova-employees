@@ -7,10 +7,27 @@
 .result__data-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  column-gap: 1rem;
   row-gap: 0.75rem;
+  margin-top: 1.5rem;
 }
 
-.result__data-grid__header {
+.result__data-grid div:nth-child(4n+4) {
+  text-align: right;
+}
+
+.result__data-grid-cell--header {
   font-weight: var(--font-weight-strong);
+  font-size: 1rem;
+  border-bottom: 2px solid #000000a3;
+  padding: 0.75rem 0;
+}
+
+.result__data-grid-cell--total {
+  font-weight: var(--font-weight-strong);
+  grid-column: span 3;
+}
+
+.result__data-grid-cell--total-days {
+  font-weight: var(--font-weight-strong);
+  text-align: right;
 }

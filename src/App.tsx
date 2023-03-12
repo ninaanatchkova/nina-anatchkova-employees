@@ -37,19 +37,19 @@ function App() {
           <p>Employees with ID numbers {result.employeeAId} and {result.employeeBId} have worked together the longest for a total of {result.totalDaysWorkedTogether} days.</p>
           <p>List of employees {result.employeeAId} and {result.employeeBId} common projects:</p>
           <div className="result__data-grid">
-            <div className="result__data-grid__header">Employee ID #1</div>
-            <div className="result__data-grid__header">Employee ID #1</div>
-            <div className="result__data-grid__header">Project ID</div>
-            <div className="result__data-grid__header">Days worked together</div>
-            {result.projects.map((project) => (
-              <>
+            <div className="result__data-grid-cell--header">Employee ID #1</div>
+            <div className="result__data-grid-cell--header">Employee ID #1</div>
+            <div className="result__data-grid-cell--header">Project ID</div>
+            <div className="result__data-grid-cell--header">Days worked together</div>
+            {result.projects.map((project, projectIndex) => (
+              <React.Fragment key={projectIndex}>
                 <div>{result.employeeAId}</div>
                 <div>{result.employeeBId}</div>
                 <div>{project.projectId}</div>
                 <div>{project.daysWorkedTogether}</div>
-              </>))}
-            <div>Total:</div>
-            <div>{result.totalDaysWorkedTogether}</div>
+              </React.Fragment>))}
+            <div className="result__data-grid-cell--total">Total:</div>
+            <div className="result__data-grid-cell--total-days">{result.totalDaysWorkedTogether}</div>
           </div>
         </section>) : null}
       </main>
