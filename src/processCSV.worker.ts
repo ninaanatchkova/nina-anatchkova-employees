@@ -1,58 +1,9 @@
-import { CoworkingPairs, EmployeeRecord } from "./types";
+import { CoworkingPairs, EmployeeRecord, ProjectsData } from "./types";
 
 //eslint-disable-next-line no-restricted-globals
 const ctx: Worker = self as any;
 
 const milisecondsPerDay = 1000 * 60 * 60 * 24;
-
-const fakeProj: EmployeeRecord[][] = [
-  [
-    {
-      employeeId: 30,
-      projectId: 0,
-      startDate: Date.parse('2020-09-12'),
-      endDate: Date.parse('2020-11-05'),
-    },
-    {
-      employeeId: 12,
-      projectId: 0,
-      startDate: Date.parse('2020-10-07'),
-      endDate: Date.parse('2020-12-12'),
-    }, 
-    {
-      employeeId: 6,
-      projectId: 0,
-      startDate: Date.parse('2020-04-07'),
-      endDate: Date.parse('2020-05-12'),
-    },
-    {
-      employeeId: 13,
-      projectId: 0,
-      startDate: Date.parse('2020-04-07'),
-      endDate: Date.parse('2020-11-12'),
-    }
-  ],
-  [
-    {
-      employeeId: 15,
-      projectId: 1,
-      startDate: Date.parse('2019-09-12'),
-      endDate: Date.parse('2020-11-05'),
-    },
-    {
-      employeeId: 6,
-      projectId: 1,
-      startDate: Date.parse('2020-04-07'),
-      endDate: Date.parse('2021-05-12'),
-    },
-    {
-      employeeId: 13,
-      projectId: 1,
-      startDate: Date.parse('2020-04-07'),
-      endDate: Date.parse('2021-11-12'),
-    }
-  ]
-];
 
 ctx.addEventListener("message", (event)=> {
   const data = event.data
@@ -69,7 +20,8 @@ async function extractProjectDataFromFile(file: File) {
 
   let unprocessed = '';
 
-  const projects: EmployeeRecord[][] = [];
+  //
+  const projects: ProjectsData = [];
 
   while (true) {
     const { done, value } = await reader.read();
@@ -77,7 +29,7 @@ async function extractProjectDataFromFile(file: File) {
     if (done) {
       console.log('entire file processed');
 
-      const coworkingPairs = findCoworkingPairs(fakeProj, {});
+      const coworkingPairs = findCoworkingPairs(projects, {});
 
       const longestCoworkingPair = findLongestCoworkingPair(coworkingPairs)
 
@@ -106,11 +58,11 @@ async function extractProjectDataFromFile(file: File) {
 
         const projectId = parseInt(tokens[1]);
 
-        if(!projects[projectId]) {
+        if (!projects[projectId]) {
           projects[projectId] = [];
         }
 
-        projects[projectId].push(createProjectRecordFromTokens(tokens[0], tokens[1], tokens[2], tokens[3]))
+        projects[projectId]?.push(createProjectRecordFromTokens(tokens[0], tokens[1], tokens[2], tokens[3]));
       }
     }
 
@@ -150,8 +102,8 @@ function createProjectRecordFromTokens(employeeId: string, projectId: string, st
   }
 }
 
-function findCoworkingPairs(projects: any, coworkingPairs: CoworkingPairs) {
-  return projects.reduce((acc: any, project: any) => {
+function findCoworkingPairs(projects: ProjectsData, coworkingPairs: CoworkingPairs) {
+  return projects.reduce((acc: CoworkingPairs, project: (EmployeeRecord[] | undefined)) => {
     if (!project) {
       return acc;
     }
