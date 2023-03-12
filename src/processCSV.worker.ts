@@ -76,12 +76,12 @@ async function extractProjectDataFromFile(file: File) {
     
     if (done) {
       console.log('entire file processed');
-      console.log(projects);
 
-      const coworkingPairs = findCoworkingPairs(fakeProj)
-      console.log(coworkingPairs);
+      const coworkingPairs = findCoworkingPairs(fakeProj, {});
 
-      postMessage(findLongestCoworkingPair(coworkingPairs));
+      const longestCoworkingPair = findLongestCoworkingPair(coworkingPairs)
+
+      postMessage(longestCoworkingPair);
       break;
     }
 
@@ -150,22 +150,22 @@ function createProjectRecordFromTokens(employeeId: string, projectId: string, st
   }
 }
 
-function findCoworkingPairs(projects: any) {
+function findCoworkingPairs(projects: any, coworkingPairs: CoworkingPairs) {
   return projects.reduce((acc: any, project: any) => {
     if (!project) {
       return acc;
     }
-    return {...acc, ...findCoworkingPairsPerProject(project)}
-  }, {})
+    return findCoworkingPairsPerProject(project, coworkingPairs)
+  }, coworkingPairs)
 }
 
-function findCoworkingPairsPerProject(project: EmployeeRecord[]) {
-  const coworkingPairs = project.reduce((acc, employeeRecord, employeeRecordIndex) => {
+function findCoworkingPairsPerProject(project: EmployeeRecord[], coworkingPairs: CoworkingPairs) {
+  coworkingPairs = project.reduce((acc, employeeRecord, employeeRecordIndex) => {
     const followingEmployeeRecords = project.slice(employeeRecordIndex + 1);
 
-    const coworkingPairsWithCurrent = followingEmployeeRecords.reduce(getReducer(employeeRecord), {})
+    const coworkingPairsWithCurrent = followingEmployeeRecords.reduce(getReducer(employeeRecord), coworkingPairs)
     return {...acc, ...coworkingPairsWithCurrent};
-  }, {})
+  }, coworkingPairs)
 
   return coworkingPairs;
 }
