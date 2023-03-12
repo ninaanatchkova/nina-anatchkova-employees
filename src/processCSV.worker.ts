@@ -108,7 +108,12 @@ function getReducer(currentRecord: EmployeeRecord) {
     const coworkingPairKey = generateCoworkingPairKey(currentRecord, record);
 
     if (acc[coworkingPairKey]) {
-      acc[coworkingPairKey].projects.push({projectId: currentRecord.projectId, daysWorkedTogether: overlap});
+      const existingProjectRecordIndex = acc[coworkingPairKey].projects.findIndex((project) => project.projectId === currentRecord.projectId);
+      if (existingProjectRecordIndex >= 0) {
+        acc[coworkingPairKey].projects[existingProjectRecordIndex].daysWorkedTogether += overlap;
+      } else {
+        acc[coworkingPairKey].projects.push({projectId: currentRecord.projectId, daysWorkedTogether: overlap});
+      }
       acc[coworkingPairKey].totalDaysWorkedTogether += overlap;
     } else {
       acc[coworkingPairKey] = {
