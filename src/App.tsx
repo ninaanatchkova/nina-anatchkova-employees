@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
+import ResultTable from './ResultTable';
 import { CoworkingPairEntry } from './types';
 
 function App() {
@@ -52,23 +53,9 @@ function App() {
           </div> : null}
         {hasError ? <p>Invalid data. Try uploading a different file.</p> : null}
         {result ? (<section className="result">
-          <p>Employees with ID numbers {result.employeeAId} and {result.employeeBId} have worked together the longest for a total of {result.totalDaysWorkedTogether} days.</p>
-          <p>List of employees {result.employeeAId} and {result.employeeBId}'s common projects:</p>
-          <div className="result__data-grid">
-            <div className="result__data-grid-cell--header">Employee ID #1</div>
-            <div className="result__data-grid-cell--header">Employee ID #1</div>
-            <div className="result__data-grid-cell--header">Project ID</div>
-            <div className="result__data-grid-cell--header">Days worked together</div>
-            {result.projects.map((project, projectIndex) => (
-              <React.Fragment key={projectIndex}>
-                <div>{result.employeeAId}</div>
-                <div>{result.employeeBId}</div>
-                <div>{project.projectId}</div>
-                <div>{project.daysWorkedTogether}</div>
-              </React.Fragment>))}
-            <div className="result__data-grid-cell--total">Total:</div>
-            <div className="result__data-grid-cell--total-days">{result.totalDaysWorkedTogether}</div>
-          </div>
+          <p>Employees with ID numbers <span className="text-strong">{result.employeeAId}</span> and <span className="text-strong">{result.employeeBId}</span> have worked together the longest for a total of <span className="text-strong">{result.totalDaysWorkedTogether}</span> days.</p>
+          <p>List of employees <span className="text-strong">{result.employeeAId}</span> and <span className="text-strong">{result.employeeBId}</span>'s common projects:</p>
+          <ResultTable result={result}/>
         </section>) : null}
       </main>
     </div>
