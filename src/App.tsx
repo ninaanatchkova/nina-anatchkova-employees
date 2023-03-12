@@ -4,13 +4,20 @@ import LoadingSpinner from './LoadingSpinner';
 import ResultTable from './ResultTable';
 import { CoworkingPairEntry } from './types';
 
+type AppError = {
+  hasError: boolean;
+  error: string;
+}
+
+const NO_ERROR = {hasError: false, error: ""};
+
 function App() {
   const [result, setResult] = useState<CoworkingPairEntry | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const [error, setError] = useState<AppError>(NO_ERROR);
 
   const changeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setHasError(false);
+    setError(NO_ERROR);
     setResult(null);
 
     if (event.target.files && event.target.files.length > 0) {
@@ -22,7 +29,7 @@ function App() {
       worker.onmessage = function(e) {
         if (typeof e.data === "string") {
           setIsLoading(false);
-          setHasError(true);
+          setError({hasError: true, error: e.data});
           setResult(null);
         } else {
           setIsLoading(false);
@@ -30,7 +37,7 @@ function App() {
         }
       }
     } else {
-      setHasError(false);
+      setError(NO_ERROR);
       setResult(null);
     } 
   }
@@ -50,7 +57,7 @@ function App() {
            disabled={isLoading}
         />
         {isLoading ? <LoadingSpinner /> : null}
-        {hasError ? <p>Invalid data. Try uploading a different file.</p> : null}
+        {error.hasError ? <p className="text-strong">Error: {error.error}</p> : null}
         {result ? (<section className="result">
           <p>Employees with ID numbers <span className="text-strong">{result.employeeAId}</span> and <span className="text-strong">{result.employeeBId}</span> have worked together the longest for a total of <span className="text-strong">{result.totalDaysWorkedTogether}</span> days.</p>
           <p>List of employees <span className="text-strong">{result.employeeAId}</span> and <span className="text-strong">{result.employeeBId}</span>'s common projects:</p>

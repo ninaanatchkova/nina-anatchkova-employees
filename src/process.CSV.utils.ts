@@ -16,7 +16,7 @@ export function isRowValid(tokens: string[]) {
     return false; 
   }
 
-  if (parser.fromString(tokens[3]).invalid && tokens[3] !== "NULL") {
+  if (parser.fromString(tokens[3]).invalid && tokens[3].trim() !== "NULL") {
     return false;
   }
 
@@ -28,7 +28,7 @@ export function createProjectRecordFromTokens(employeeId: string, projectId: str
     employeeId: parseInt(employeeId),
     projectId: parseInt(projectId),
     startDate: parser.fromString(startDate).getTime(),
-    endDate: endDate === "NULL" ? Date.now() : parser.fromString(endDate).getTime()
+    endDate: endDate.trim() === "NULL" ? Date.now() : parser.fromString(endDate).getTime()
   }
 };
 

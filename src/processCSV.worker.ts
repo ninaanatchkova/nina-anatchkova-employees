@@ -11,10 +11,22 @@ ctx.addEventListener("message", (event)=> {
 
   extractProjectDataFromFile(data)
   .then(value => {
+    if (value.length === 0 ) {
+      throw new Error("Invalid data. Try uploading a different file.")
+    }
+
     const coworkingPairs = findCoworkingPairs(value, {});
+
+    if (Object.keys(coworkingPairs).length === 0) {
+      throw new Error("No two employees have worked together on shared projects.")
+    }
+
     const longestCoworkingPair = findLongestCoworkingPair(coworkingPairs)
     postMessage(longestCoworkingPair)})
-  .catch(err => postMessage(err.message));
+  .catch(err => {
+    console.log(err.message)
+    postMessage(err.message)
+  });
 });
 
 
