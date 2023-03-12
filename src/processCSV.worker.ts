@@ -10,7 +10,10 @@ ctx.addEventListener("message", (event)=> {
   const data = event.data
 
   extractProjectDataFromFile(data)
-  .then(value => postMessage(value))
+  .then(value => {
+    const coworkingPairs = findCoworkingPairs(value, {});
+    const longestCoworkingPair = findLongestCoworkingPair(coworkingPairs)
+    postMessage(longestCoworkingPair)})
   .catch(err => postMessage(err.message));
 });
 
@@ -29,15 +32,7 @@ async function extractProjectDataFromFile(file: File) {
     const { done, value } = await reader.read();
     
     if (done) {
-      if (projects.length === 0) {
-        throw new Error("Invalid data!");
-      }
-
-      const coworkingPairs = findCoworkingPairs(projects, {});
-
-      const longestCoworkingPair = findLongestCoworkingPair(coworkingPairs)
-
-      return longestCoworkingPair;
+      return projects.filter(n => n);
     }
 
     const decodedChunk = decoder.decode(value);
