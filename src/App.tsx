@@ -11,14 +11,13 @@ function App() {
     setHasError(false);
     setResult(null);
 
-    if (event.target.files) {
+    if (event.target.files && event.target.files.length > 0) {
       const worker = new Worker(new URL("./processCSV.worker.ts", import.meta.url));
       setIsLoading(true);
 
       worker.postMessage(event.target.files[0])
 
       worker.onmessage = function(e) {
-        console.log(e.data);
         if (typeof e.data === "string") {
           setIsLoading(false);
           setHasError(true);
@@ -28,7 +27,10 @@ function App() {
           setResult(e.data);
         }
       }
-    }
+    } else {
+      setHasError(false);
+      setResult(null);
+    } 
   }
 
   return (
@@ -43,12 +45,15 @@ function App() {
            id="records" name="records"
            accept="csv"
            onChange={changeHandler}
+           disabled={isLoading}
         />
-        {isLoading ? <p>Loading...</p> : null}
+        {isLoading ? <div>
+          <p>Loading...</p>
+          </div> : null}
         {hasError ? <p>Invalid data. Try uploading a different file.</p> : null}
         {result ? (<section className="result">
           <p>Employees with ID numbers {result.employeeAId} and {result.employeeBId} have worked together the longest for a total of {result.totalDaysWorkedTogether} days.</p>
-          <p>List of employees {result.employeeAId} and {result.employeeBId} common projects:</p>
+          <p>List of employees {result.employeeAId} and {result.employeeBId}'s common projects:</p>
           <div className="result__data-grid">
             <div className="result__data-grid-cell--header">Employee ID #1</div>
             <div className="result__data-grid-cell--header">Employee ID #1</div>
