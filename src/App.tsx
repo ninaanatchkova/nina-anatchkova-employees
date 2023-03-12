@@ -5,17 +5,28 @@ import { CoworkingPairEntry } from './types';
 function App() {
   const [result, setResult] = useState<CoworkingPairEntry | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const changeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setHasError(false);
+    setResult(null);
 
     if (event.target.files) {
       const worker = new Worker(new URL("./processCSV.worker.ts", import.meta.url));
+      setIsLoading(true);
 
       worker.postMessage(event.target.files[0])
 
       worker.onmessage = function(e) {
-        setIsLoading(false);
-        setResult(e.data);
+        console.log(e.data);
+        if (typeof e.data === "string") {
+          setIsLoading(false);
+          setHasError(true);
+          setResult(null);
+        } else {
+          setIsLoading(false);
+          setResult(e.data);
+        }
       }
     }
   }
@@ -33,6 +44,8 @@ function App() {
            accept="csv"
            onChange={changeHandler}
         />
+        {isLoading ? <p>Loading...</p> : null}
+        {hasError ? <p>Invalid data. Try uploading a different file.</p> : null}
         {result ? (<section className="result">
           <p>Employees with ID numbers {result.employeeAId} and {result.employeeBId} have worked together the longest for a total of {result.totalDaysWorkedTogether} days.</p>
           <p>List of employees {result.employeeAId} and {result.employeeBId} common projects:</p>
