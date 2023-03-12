@@ -58,24 +58,6 @@ ctx.addEventListener("message", (event)=> {
   const data = event.data
 
   extractProjectDataFromFile(data);
-
-  postMessage(
-    {
-      employeeAId: 10,
-      employeeBId: 12,
-      projects: [
-        {
-          projectId: 45,
-          daysWorkedTogether: 33,
-        },
-        {
-          projectId: 21,
-          daysWorkedTogether: 60,
-        }
-      ],
-      totalDaysWorkedTogether: 93,
-    }
-  );
 })
 
 
@@ -95,7 +77,11 @@ async function extractProjectDataFromFile(file: File) {
     if (done) {
       console.log('entire file processed');
       console.log(projects);
-      console.log(findCoworkingPairs(fakeProj));
+
+      const coworkingPairs = findCoworkingPairs(fakeProj)
+      console.log(coworkingPairs);
+
+      postMessage(findLongestCoworkingPair(coworkingPairs));
       break;
     }
 
@@ -226,5 +212,10 @@ function generateCoworkingPairKey(employeeA: EmployeeRecord, employeeB: Employee
 function returnIdsInAscendingOrder(recordA: EmployeeRecord, recordB: EmployeeRecord) {
   return recordA.employeeId < recordB.employeeId ? {employeeAId: recordA.employeeId, employeeBId: recordB.employeeId} : {employeeAId: recordB.employeeId, employeeBId: recordA.employeeId}
 }
+
+function findLongestCoworkingPair(coworkingPairs: CoworkingPairs) {
+  const index = Object.entries(coworkingPairs).sort((a, b) => b[1].totalDaysWorkedTogether - a[1].totalDaysWorkedTogether)[0][0];
+  return coworkingPairs[index];
+} 
 
 export default null as any;
