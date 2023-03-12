@@ -34,12 +34,18 @@ export function createProjectRecordFromTokens(employeeId: string, projectId: str
 
 export function workingPeriodOverlap(employeeA: EmployeeRecord, employeeB: EmployeeRecord) {
   const [firstEmployee, secondEmployee] = employeeA.startDate <= employeeB.startDate ? [employeeA, employeeB] : [employeeB, employeeA];
-  
+
   if (firstEmployee.endDate < secondEmployee.startDate) {
     return 0;
   }
 
-  return Math.ceil((firstEmployee.endDate - secondEmployee.startDate) / millisecondsPerDay);
+  if (firstEmployee.endDate > secondEmployee.endDate) {
+    // subtract the previous day of the collaboration start so that the first day is counted
+    return Math.ceil((secondEmployee.endDate - (secondEmployee.startDate - 1 * millisecondsPerDay)) / millisecondsPerDay);
+  }
+
+  // subtract the previous day of the collaboration start so that the first day is counted
+  return Math.ceil((firstEmployee.endDate - (secondEmployee.startDate - 1 * millisecondsPerDay)) / millisecondsPerDay);
 }
 
 export function generateCoworkingPairKey(employeeA: EmployeeRecord, employeeB: EmployeeRecord) {
